@@ -2,6 +2,14 @@
   "name": "@freestuffbot/bluesky",
   "version": "1.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FreeStuffBot/bluesky.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FreeStuffBot/bluesky/issues"
+  },
+  "homepage": "https://github.com/FreeStuffBot/bluesky#readme",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
