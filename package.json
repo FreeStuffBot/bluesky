@@ -1,0 +1,19 @@
+{
+  "name": "@freestuffbot/bluesky",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.15.0",
+    "freestuff": "2.3.0",
+    "hono": "^4.12.15"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "wrangler": "^4.85.0"
+  }
+}
