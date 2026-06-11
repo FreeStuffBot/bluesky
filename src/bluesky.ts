@@ -10,6 +10,7 @@ type BlueskyPost = {
   title?: string
   url?: string
   summary?: string
+  store?: string | { code?: string; name?: string }
 }
 
 function getStarRating(rating: number): string {
@@ -160,27 +161,73 @@ function formatPrice(product: Product) {
   }).format(price.oldValue / 100)
 }
 
+function getStoreDisplayName(store?: string | { code?: string; name?: string } | null): string {
+  if (!store) {
+    return ''
+  }
+
+  if (typeof store === 'object') {
+    if (store.name) {
+      return store.name
+    }
+    if (store.code) {
+      store = store.code
+    } else {
+      return ''
+    }
+  }
+
+  const storeMap: Record<string, string> = {
+    steam: 'Steam',
+    epic: 'Epic Games',
+    humble: 'Humble Bundle',
+    gog: 'GOG.com',
+    origin: 'Origin',
+    ubi: 'Ubisoft Store',
+    gplay: 'Google Play',
+    fab: 'Fab',
+  }
+
+  return storeMap[store.toLowerCase()] || store
+}
+
 export function createPostText(product: Product, productUrl?: string) {
   const untilString = product.until
-    ? ` until ${new Intl.DateTimeFormat('en-US', {
-        dateStyle: 'long',
-        timeStyle: 'short',
-      }).format(product.until)}`
+    ? (() => {
+        const untilDate = new Date(product.until)
+        const datePart = new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(untilDate)
+
+        // 24-hour time without seconds
+        const timePart = new Intl.DateTimeFormat('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).format(untilDate)
+
+        // Workers run in UTC — append UTC label
+        const tzLabel = 'UTC'
+
+        return ` until ${datePart} ${timePart} ${tzLabel}`
+      })()
     : ''
 
-  const statusParts = ['FREE for a limited time']
+  // Get store name from product
+  const storeName = getStoreDisplayName(product?.store)
+  const storeSuffix = storeName ? ` on ${storeName}` : ''
+
+  // Build status string with store name
+  let status = 'FREE'
   if (product.type === 'timed') {
-    statusParts[0] = 'Free Weekend'
+    status = 'Free Weekend'
+  } else if (product.type === 'other') {
+    status += ' DLC / Addon'
+  } else if (product.type === 'mobile') {
+    status += ' Mobile Game'
+  } else if (product.type === 'assets') {
+    status += ' Game Dev Assets'
   }
-  if (product.type === 'other') {
-    statusParts.push('DLC / Addon')
-  }
-  if (product.type === 'mobile') {
-    statusParts.push('Mobile Game')
-  }
-  if (product.type === 'assets') {
-    statusParts.push('Game Dev Assets')
-  }
+
+  const statusLine = `${status}${storeSuffix}${untilString}`
 
   const details: string[] = []
   // const tagText = extractTags(product.tags)
@@ -200,7 +247,7 @@ export function createPostText(product: Product, productUrl?: string) {
 
   const lines: Array<string | null> = [
     `🆓 ${product.title}`,
-    `${statusParts.join(' • ')}${untilString}`,
+    statusLine,
     details.length ? details.join(' • ') : null,
     resolvedUrl,
     '',
@@ -242,6 +289,8 @@ export async function postProduct(post: BlueskyPost) {
 
   let embed: Record<string, unknown> | undefined
 
+  const storeNameForEmbed = getStoreDisplayName((post as any).store)
+
   if (post.url) {
     if (post.imageUrl) {
       const imageBlob = await uploadImageBlob(agent, post.imageUrl)
@@ -249,7 +298,7 @@ export async function postProduct(post: BlueskyPost) {
         $type: 'app.bsky.embed.external',
         external: {
           uri: post.url,
-          title: post.title ?? 'Free game deal',
+          title: `${post.title ?? 'Free game deal'}${storeNameForEmbed ? ` on ${storeNameForEmbed}` : ''}`,
           description: post.summary ?? text.slice(0, 240),
           thumb: imageBlob,
         },
@@ -259,7 +308,7 @@ export async function postProduct(post: BlueskyPost) {
         $type: 'app.bsky.embed.external',
         external: {
           uri: post.url,
-          title: post.title ?? 'Free game deal',
+          title: `${post.title ?? 'Free game deal'}${storeNameForEmbed ? ` on ${storeNameForEmbed}` : ''}`,
           description: post.summary ?? text.slice(0, 240),
         },
       }
@@ -284,5 +333,6 @@ export async function postProduct(post: BlueskyPost) {
     text,
     facets,
     embed,
+    langs: ['en-US'],
   })
 }

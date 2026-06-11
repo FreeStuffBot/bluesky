@@ -19,6 +19,7 @@ async function sendProductPost(product: Product) {
     url: productUrl,
     summary: descriptionText,
     imageUrl: product.images?.[0]?.url,
+    store: (product as any).store,
   })
 }
 
