@@ -47,7 +47,7 @@ function buildHashtags(product: Product): string[] {
   }
 
   product.tags?.forEach(add)
-  if (product.kind === 'game') add('FreeGame')
+  if (product.type === 'keep') add('FreeGame')
   if (product.type === 'timed') add('FreeWeekend')
   if (product.type === 'mobile') add('MobileGame')
   if (product.type === 'other') add('DLC')
