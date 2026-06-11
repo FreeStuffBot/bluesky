@@ -6,6 +6,7 @@ interface Env {
   BSKY_PASSWORD: string
   BSKY_SERVICE_URL?: string
   FREESTUFF_PUBLIC_KEY: string
+  DISCORD_WEBHOOK_URL?: string
 }
 
 let env: Env | null = null
