@@ -29,6 +29,7 @@ Set the following environment variables for the worker:
 - `BSKY_PASSWORD` - Bluesky login password or app-specific password
 - `BSKY_SERVICE_URL` - optional Bluesky service URL (defaults to `https://bsky.social`)
 - `FREESTUFF_PUBLIC_KEY` - FreeStuff event public key
+- `FREESTUFF_API_KEY` - FreeStuff REST API key, used for manual `/product` fetches and API calls
 
 You can use `.env.example` as a starter template for local development.
 
@@ -71,6 +72,8 @@ bunx wrangler deploy --minify
 - The worker exposes `POST /event`
 - Incoming FreeStuff events are verified using `FREESTUFF_PUBLIC_KEY`
 - When `fsb:event:announcement_created` is received, the bot posts product details to Bluesky
+- The worker also exposes `POST /product` for manual posting of a single product ID
+- Manual `/product` requests are authenticated with `Authorization: Bearer <FREESTUFF_API_KEY>`
 - Posts may include hashtags and clickable links using BlueSky rich text facets
 
 ## Notes

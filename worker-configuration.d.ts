@@ -8,6 +8,7 @@ declare namespace Cloudflare {
     BSKY_PASSWORD: string
     BSKY_SERVICE_URL?: string
     FREESTUFF_PUBLIC_KEY: string
+    FREESTUFF_API_KEY: string
     DISCORD_WEBHOOK_URL?: string
   }
 }
@@ -16,5 +17,5 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
   [Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string
 }
 declare namespace NodeJS {
-  interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BSKY_IDENTIFIER" | "BSKY_PASSWORD" | "BSKY_SERVICE_URL" | "FREESTUFF_PUBLIC_KEY" | "DISCORD_WEBHOOK_URL">> {}
+  interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BSKY_IDENTIFIER" | "BSKY_PASSWORD" | "BSKY_SERVICE_URL" | "FREESTUFF_PUBLIC_KEY" | "FREESTUFF_API_KEY" | "DISCORD_WEBHOOK_URL">> {}
 }
