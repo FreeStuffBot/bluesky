@@ -1,31 +1,11 @@
-import { on, Product } from 'freestuff'
-import { createPostText, postProduct } from './bluesky'
+import { on } from 'freestuff'
+import { sendProductPost, sendToAll } from './product-post'
 
 type HonoEvent = {
   $hono: {
-    executionCtx: ExecutionContext
-  }
-}
-
-async function sendProductPost(product: Product) {
-  const productUrl = product.urls[0]?.url || `https://google.com/search?q=${encodeURIComponent(product.title)}`
-  const descriptionText = product.description?.find(d => d.lang === 'en-US')?.text
-    || product.description?.[0]?.text
-    || 'Free game deal'
-
-  await postProduct({
-    text: createPostText(product, productUrl),
-    title: product.title,
-    url: productUrl,
-    summary: descriptionText,
-    imageUrl: product.images?.[0]?.url,
-    store: (product as any).store,
-  })
-}
-
-async function sendToAll(products: Product[]) {
-  for (const product of products) {
-    await sendProductPost(product)
+    executionCtx: {
+      waitUntil: (promise: Promise<unknown>) => void
+    }
   }
 }
 
@@ -34,6 +14,7 @@ on('fsb:event:ping', (event) => {
 })
 
 on('fsb:event:announcement_created', (event) => {
+  console.log('/event announcement_created:', JSON.stringify(event.data))
   const ctx = (event as typeof event & HonoEvent).$hono.executionCtx
   ctx.waitUntil(sendToAll(event.data.resolvedProducts))
 })

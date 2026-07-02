@@ -48,17 +48,21 @@ export function getLocalizedDescription(
   preferredLang: string
 ): string | null {
   if (!descriptions || descriptions.length === 0) return null
-
-  let found = descriptions.find(d => d.lang === preferredLang)
-  if (!found) {
-    found = descriptions.find(d => d.lang === 'en-US')
-  }
-
-  return found?.text ?? null
+  return (
+    descriptions.find(d => d.lang === preferredLang) ??
+    descriptions.find(d => d.lang === 'en-US')
+  )?.text ?? null
 }
 
 export function utf8ByteIndex(text: string, charIndex: number): number {
   return new TextEncoder().encode(text.slice(0, charIndex)).length
+}
+
+function matchByteRange(text: string, match: RegExpExecArray): { byteStart: number; byteEnd: number } {
+  const encoder = new TextEncoder()
+  const byteStart = encoder.encode(text.slice(0, match.index)).length
+  const byteEnd = byteStart + encoder.encode(match[0]).length
+  return { byteStart, byteEnd }
 }
 
 export function buildTextFacets(text: string): AppBskyRichtextFacet.Main[] | undefined {
@@ -68,45 +72,22 @@ export function buildTextFacets(text: string): AppBskyRichtextFacet.Main[] | und
   let match: RegExpExecArray | null
 
   while ((match = urlRegex.exec(text))) {
-    const fullMatch = match[0]
-    const byteStart = utf8ByteIndex(text, match.index)
-    const byteEnd = byteStart + new TextEncoder().encode(fullMatch).length
-
+    const { byteStart, byteEnd } = matchByteRange(text, match)
     facets.push({
       $type: 'app.bsky.richtext.facet',
-      index: {
-        byteStart,
-        byteEnd,
-      },
-      features: [
-        {
-          $type: 'app.bsky.richtext.facet#link',
-          uri: fullMatch,
-        },
-      ],
+      index: { byteStart, byteEnd },
+      features: [{ $type: 'app.bsky.richtext.facet#link', uri: match[0] }],
     })
   }
 
   const hashtagRegex = /#([a-zA-Z0-9]+)/g
 
   while ((match = hashtagRegex.exec(text))) {
-    const fullMatch = match[0]
-    const tag = match[1].toLowerCase()
-    const byteStart = utf8ByteIndex(text, match.index)
-    const byteEnd = byteStart + new TextEncoder().encode(fullMatch).length
-
+    const { byteStart, byteEnd } = matchByteRange(text, match)
     facets.push({
       $type: 'app.bsky.richtext.facet',
-      index: {
-        byteStart,
-        byteEnd,
-      },
-      features: [
-        {
-          $type: 'app.bsky.richtext.facet#tag',
-          tag,
-        },
-      ],
+      index: { byteStart, byteEnd },
+      features: [{ $type: 'app.bsky.richtext.facet#tag', tag: match[1].toLowerCase() }],
     })
   }
 

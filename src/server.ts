@@ -70,6 +70,7 @@ app.post('/product', async (c) => {
   }
 
   const body = await c.req.json().catch(() => null)
+  console.log('/product request body:', JSON.stringify(body))
   const productId = String(body?.productId ?? c.req.query('productId') ?? '').trim()
   if (!productId) {
     return c.json({ error: 'productId is required' }, 400)
@@ -93,7 +94,10 @@ app.post('/product', async (c) => {
 
   if (!response.ok) {
     const details = await response.text()
-    return c.json({ error: 'FreeStuff API fetch failed', details }, response.status)
+    return new Response(JSON.stringify({ error: 'FreeStuff API fetch failed', details }), {
+      status: response.status,
+      headers: { 'content-type': 'application/json' },
+    })
   }
 
   const product = (await response.json()) as Product

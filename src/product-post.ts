@@ -2,6 +2,7 @@ import type { Product } from 'freestuff'
 import { createPostText, postProduct } from './bluesky'
 
 export async function sendProductPost(product: Product) {
+  console.log(`Processing product: "${product.title}" (id: ${product.id})`)
   const productUrl = product.urls[0]?.url || `https://google.com/search?q=${encodeURIComponent(product.title)}`
   const descriptionText = product.description?.find((d) => d.lang === 'en-US')?.text
     || product.description?.[0]?.text
