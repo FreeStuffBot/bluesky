@@ -8,6 +8,7 @@ interface Env {
   BSKY_IDENTIFIER: string
   BSKY_PASSWORD: string
   BSKY_SERVICE_URL?: string
+  BSKY_ALLOWED_TYPES?: string
   FREESTUFF_PUBLIC_KEY: string
   FREESTUFF_API_KEY: string
   DISCORD_WEBHOOK_URL?: string

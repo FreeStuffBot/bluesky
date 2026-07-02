@@ -1,10 +1,15 @@
 import { env } from './server'
 
+const WEBHOOK_USERNAME = 'FreeStuff · Bluesky'
+const WEBHOOK_AVATAR = 'https://web-cdn.bsky.app/static/favicon-32x32.png'
+
 export async function notifyDiscordWebhook(message: string, details?: string) {
   const webhookUrl = env?.DISCORD_WEBHOOK_URL?.trim()
   if (!webhookUrl) return
 
   const payload = {
+    username: WEBHOOK_USERNAME,
+    avatar_url: WEBHOOK_AVATAR,
     content: `${message}${details ? `\n${details}` : ''}`,
   }
 

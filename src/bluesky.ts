@@ -81,16 +81,48 @@ export function createPostText(product: Product, productUrl?: string) {
 
   const hashtags = buildHashtags(product)
 
-  const lines: Array<string | null> = [
+  const BSKY_LIMIT = 300
+  const countGraphemes = (s: string) => [...new Intl.Segmenter().segment(s)].length
+
+  const coreLines: Array<string | null> = [
     `🆓 ${product.title}`,
     statusLine,
     `🔗 ${resolvedUrl}`,
     `${product.notice ? `ℹ️ ${product.notice}\n` : ''}`.trim() || null,
     '\n',
-    hashtags.length ? hashtags.join(' ') : null,
   ]
 
-  return lines.filter(Boolean).join('\n')
+  const coreText = coreLines.filter(Boolean).join('\n')
+  const hashtagText = hashtags.length ? hashtags.join(' ') : null
+  const fullText = hashtagText ? `${coreText}\n${hashtagText}` : coreText
+
+  // If within limit, return as-is
+  if (countGraphemes(fullText) <= BSKY_LIMIT) return fullText
+
+  // Drop hashtags one by one until it fits
+  const remainingHashtags = [...hashtags]
+  while (remainingHashtags.length > 0) {
+    remainingHashtags.pop()
+    const reduced = remainingHashtags.length
+      ? `${coreText}\n${remainingHashtags.join(' ')}`
+      : coreText
+    if (countGraphemes(reduced) <= BSKY_LIMIT) return reduced
+  }
+
+  // All hashtags dropped and still too long — truncate title
+  const titlePrefix = '🆓 '
+  const titleSuffix = '...'
+  let title = product.title
+  const buildCore = (t: string) =>
+    [`${titlePrefix}${t}${titleSuffix}`, statusLine, `🔗 ${resolvedUrl}`, `${product.notice ? `ℹ️ ${product.notice}\n` : ''}`.trim() || null, '\n']
+      .filter(Boolean)
+      .join('\n')
+
+  while (title.length > 0 && countGraphemes(buildCore(title)) > BSKY_LIMIT) {
+    title = title.slice(0, -1)
+  }
+
+  return buildCore(title)
 }
 
 const MAX_EXTERNAL_EMBED_THUMB_SIZE = 1_000_000
